@@ -28,7 +28,8 @@ def get_optimizers_and_schedulers(gen, disc):
     # The learning rate for the generator should be decayed to 0 over
     # 100K iterations.
     ##################################################################
-    scheduler_discriminator = None
+
+    scheduler_discriminator = torch.lr.scheduler.StepLR(optim_discriminator, step_size=500_000, gamma=0.0)
     scheduler_generator = None
     ##################################################################
     #                          END OF YOUR CODE                      #
