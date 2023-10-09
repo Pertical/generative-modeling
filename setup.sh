@@ -1,9 +1,9 @@
 python -m pip install -r requirements.txt
 mkdir $1/cleanfid/
 mkdir $1/cleanfid/stats/
-mkdir -p datasets/
-rm -rf datasets/* # clear directory content
-gdown https://drive.google.com/uc\?id\=1hbzc_P1FuxMkcabkgn9ZKinBwW683j45 -O datasets/
+#mkdir -p datasets/
+#rm -rf datasets/* # clear directory content
+#gdown https://drive.google.com/uc\?id\=1hbzc_P1FuxMkcabkgn9ZKinBwW683j45 -O datasets/
 tar zxvf datasets/CUB_200_2011.tgz
 mv CUB_200_2011/ datasets/
 python resize_dataset.py --input_folder datasets/CUB_200_2011/images --output_folder datasets/CUB_200_2011_32/ --res 32

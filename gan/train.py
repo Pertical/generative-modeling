@@ -29,8 +29,9 @@ def get_optimizers_and_schedulers(gen, disc):
     # 100K iterations.
     ##################################################################
 
-    scheduler_discriminator = torch.lr.scheduler.StepLR(optim_discriminator, step_size=500_000, gamma=0.0)
-    scheduler_generator = None
+    scheduler_discriminator = torch.optim.lr_scheduler.StepLR(optimizer=optim_discriminator, step_size=50000, gamma=0.0)
+    scheduler_generator = torch.optim.lr_scheduler.StepLR(optimizer=optim_generator, step_size=10000, gamma=0.0)
+
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
@@ -106,8 +107,8 @@ def train_model(
                 # 2. Compute discriminator output on the train batch.
                 # 3. Compute the discriminator output on the generated data.
                 ##################################################################
-                discrim_real = None
-                discrim_fake = None
+                discrim_real = disc(train_batch)
+                discrim_fake = gen(train_batch)
                 ##################################################################
                 #                          END OF YOUR CODE                      #
                 ##################################################################
@@ -116,8 +117,12 @@ def train_model(
                 # TODO 1.5 Compute the interpolated batch and run the
                 # discriminator on it.
                 ###################################################################
-                interp = None
-                discrim_interp = None
+
+                os.makedirs("./interpolations", exist_ok=True)
+                path = os.path.join(prefix, "interpolations_{}.png".format(iters))
+
+                interp = interpolate_latent_space(gen, path)
+                discrim_interp = disc(interp)
                 ##################################################################
                 #                          END OF YOUR CODE                      #
                 ##################################################################
@@ -137,8 +142,8 @@ def train_model(
                     # TODO 1.2: Compute generator and discriminator output on
                     # generated data.
                     ###################################################################
-                    fake_batch = None
-                    discrim_fake = None
+                    fake_batch = gen(train_batch)
+                    discrim_fake = disc(fake_batch)
                     ##################################################################
                     #                          END OF YOUR CODE                      #
                     ##################################################################
@@ -157,7 +162,8 @@ def train_model(
                         # TODO 1.2: Generate samples using the generator.
                         # Make sure they lie in the range [0, 1]!
                         ##################################################################
-                        generated_samples = None
+                        generated_samples = gen(train_batch)
+                        
                         ##################################################################
                         #                          END OF YOUR CODE                      #
                         ##################################################################
