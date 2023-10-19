@@ -64,20 +64,31 @@ class DownSampleConv2D(torch.jit.ScriptModule):
         # 1. Use torch.nn.PixelUnshuffle to form an output of dimension
         # (batch, channel, downscale_factor^2, height, width)
         # 2. Then split channel-wise into
-        # (downscale_factor^2xbatch, channel, height, width) images
+        # (downscale_factor^2, batch, channel, height, width) images
+        # (downscale_factor^2, batch, channel, height, width).
         # 3. Take the average across dimension 0, apply convolution,
         # and return the output
         ##################################################################
 
         #Studying purpose: https://pytorch.org/docs/stable/generated/torch.nn.PixelUnshuffle.html
-
-
-
-        # x = self.conv(x)
-        # x = torch.nn.functional.pixel_shuffle(x, upscale_factor=self.upscale_factor)
-
         
+        #print("shape of x:", x.shape) #shape of x: [256, 128, 32, 32]
+
+        # batch, channel, height, width = x.shape
+
         x = nn.functional.pixel_unshuffle(x, downscale_factor=self.downscale_ratio)
+        print("shape of x:", x.shape)
+
+        batch, channel, height, width = x.shape
+
+        channel_new = int(channel / self.downscale_ratio**2)
+
+        x = x.view(int(self.downscale_ratio**2), batch, channel_new, height, width)
+        print("shape of x:", x.shape)
+
+        x = torch.mean(x, dim=0)
+        print("shape of x:", x.shape)
+
         x = self.conv(x)
 
         return x
@@ -136,8 +147,12 @@ class ResBlockUp(torch.jit.ScriptModule):
         # to the layer output.
         ##################################################################
         
-        x = self.ResBlockUp(x)
-        x = x + self.upsample_residual(x)
+        # x = self.ResBlockUp(x)
+        # x = x + self.upsample_residual(x)
+
+        resblockup_out = self.ResBlockUp(x)
+        upsample_out = self.upsample_residual(x)
+        x = resblockup_out + upsample_out
 
         return x
 
@@ -173,7 +188,7 @@ class ResBlockDown(torch.jit.ScriptModule):
             nn.ReLU(),
             nn.Conv2d(input_channels, n_filters, kernel_size, stride=(1, 1), padding=(1, 1)),
             nn.ReLU(),
-            DownSampleConv2D(n_filters, n_filters, kernel_size, padding=(1, 1))
+            DownSampleConv2D(input_channels, kernel_size, n_filters, padding=(1, 1))
         )
 
         self.downsample_residual = DownSampleConv2D(input_channels, kernel_size=1, n_filters=n_filters,  padding=(1, 1))
@@ -190,8 +205,10 @@ class ResBlockDown(torch.jit.ScriptModule):
         # it to the layer output.
         ##################################################################
         
-        x = self.ResBlockDown(x)
-        x = x + self.downsample_residual(x)
+        resblockdown_out = self.ResBlockDown(x)
+        downsample_out = self.downsample_residual(x)
+
+        x = resblockdown_out + downsample_out
 
         return x
 
@@ -237,6 +254,7 @@ class ResBlock(torch.jit.ScriptModule):
         ##################################################################
         x = self.ResBlock(x)
         x = x + x
+
 
         return x
 
@@ -313,9 +331,9 @@ class Generator(torch.jit.ScriptModule):
         self.dense = nn.Linear(128, 2048, bias=True)
 
         self.layers = nn.Sequential(
-            ResBlockUp(128, 3, 128),
-            ResBlockUp(128, 3, 128), 
-            ResBlockUp(128, 3, 128),  
+            ResBlockUp(128),
+            ResBlockUp(128), 
+            ResBlockUp(128),  
 
             nn.BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
             nn.ReLU(),
@@ -418,10 +436,10 @@ class Discriminator(torch.jit.ScriptModule):
         self.dense = nn.Linear(128, 1, bias=True)
         self.layers = nn.Sequential(
 
-            ResBlockDown(3, 3, 128),
-            ResBlockDown(128, 3, 128),
-            ResBlock(128, 3, 128),
-            ResBlock(128, 3, 128),
+            ResBlockDown(3),
+            ResBlockDown(128),
+            ResBlock(128),
+            ResBlock(128),
 
             nn.ReLU()
         )
@@ -444,3 +462,7 @@ class Discriminator(torch.jit.ScriptModule):
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
+
+
+
+
