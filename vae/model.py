@@ -32,7 +32,6 @@ class Encoder(nn.Module):
             nn.Conv2d(64, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
             nn.ReLU(),
             nn.Conv2d(128, 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
-        
         )
 
         spatial_size = np.prod(self.convs(torch.zeros(1, *input_shape)).shape[1:])
@@ -63,7 +62,8 @@ class VAEEncoder(Encoder):
         # TODO 2.4: Fill in self.fc, such that output dimension is
         # 2*self.latent_dim
         ##################################################################
-        self.fc = None
+        self.latent_dim = latent_dim
+        self.fc = nn.Linear(self.fc.in_features, 2 * self.latent_dim)
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
@@ -73,7 +73,8 @@ class VAEEncoder(Encoder):
         # TODO 2.1: Forward pass through the network, should return a
         # tuple of 2 tensors, mu and log_std
         ##################################################################
-        mu = None
+
+        mu = 
         log_std = None
         ##################################################################
         #                          END OF YOUR CODE                      #
@@ -103,9 +104,22 @@ class Decoder(nn.Module):
         # TODO 2.1: Set up the network layers. First, compute
         # self.base_size, then create the self.fc and self.deconvs.
         ##################################################################
-        self.base_size = 0
-        self.deconvs = None
-        self.fc = None
+        
+        
+        self.base_size = 4 * 4 * 256
+
+        self.deconvs = nn.Sequential(
+            nn.ReLU(),
+            nn.ConvTranspose2d(256, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1)),
+            nn.ReLU(),
+            nn.ConvTranspose2d(128, 64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1)),
+            nn.ReLU(),
+            nn.ConvTranspose2d(64, 32, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1)),
+            nn.ReLU(),
+            nn.Conv2d(32, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
+        )
+
+        self.fc = nn.Linear(latent_dim, self.base_size)
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
