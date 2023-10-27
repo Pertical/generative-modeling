@@ -24,8 +24,8 @@ def compute_discriminator_loss(
     # sigmoid_real = torch.sigmoid(discrim_real)
     # sigmoid_fake = torch.sigmoid(discrim_fake)
 
-    # loss_real = torch.sum(torch.log(sigmoid_real))
-    # loss_fake = torch.sum(torch.log(1 - sigmoid_fake))
+    # loss_real = torch.mean(torch.log(sigmoid_real))
+    # loss_fake = torch.mean(torch.log(1 - sigmoid_fake))
 
     # loss = loss_real + loss_fake
 
@@ -45,7 +45,7 @@ def compute_generator_loss(discrim_fake):
 
     # sigmoid_fake = torch.sigmoid(discrim_fake)
     
-    # loss = torch.sum(torch.log(1 - sigmoid_fake))
+    # loss = torch.mean(torch.log(1 - sigmoid_fake))
 
 
     loss = F.binary_cross_entropy_with_logits(discrim_fake, torch.ones_like(discrim_fake))
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     args = get_args()
     gen = Generator().cuda()
     disc = Discriminator().cuda()
-    prefix = "data_gan/"
+    prefix = "data_gan/Sigmoid/"
     os.makedirs(prefix, exist_ok=True)
 
     train_model(

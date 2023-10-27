@@ -192,11 +192,12 @@ def train_model(
 
                         generated_samples = gen.forward(train_batch.shape[0]).cuda()
 
-                        generated_samples = torch.clamp(generated_samples, 0, 1)
+                        #generated_samples = torch.clamp(generated_samples, 0, 1)
+                        generated_samples = torch.sigmoid(generated_samples)
 
                         # min_value = generated_samples.min()
                         # max_value = generated_samples.max()
-                        # rescaled_tensor = (generated_samples - min_value) / (max_value - min_value)
+                        # generated_samples = (generated_samples - min_value) / (max_value - min_value)
 
                         ##################################################################
                         #                          END OF YOUR CODE                      #
