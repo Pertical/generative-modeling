@@ -16,7 +16,13 @@ def compute_discriminator_loss(
     # Do not use discrim_interp, interp, lamb. They are placeholders
     # for Q1.5.
     ##################################################################
-    loss = None
+
+    #Regular GANs hypothesize the discriminator as a classifier with sigmoid cross entroy (vanishing gradient problem)
+    #LSGANs hypothesize the discriminator as a regressor with MSE loss
+
+
+    loss = 0.5 * torch.mean((discrim_real - 1)**2) + 0.5 * torch.mean(discrim_fake**2)
+
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
@@ -27,7 +33,8 @@ def compute_generator_loss(discrim_fake):
     ##################################################################
     # TODO: 1.4: Implement LSGAN loss for generator.
     ##################################################################
-    loss = None
+    
+    loss = 0.5 * torch.mean((discrim_fake - 1)**2)
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
