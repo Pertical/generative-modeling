@@ -29,9 +29,11 @@ def get_optimizers_and_schedulers(gen, disc):
     # 100K iterations.
     ##################################################################
 
-    scheduler_discriminator = torch.optim.lr_scheduler.StepLR(optimizer=optim_discriminator, step_size=50000, gamma=0.0)
-    scheduler_generator = torch.optim.lr_scheduler.StepLR(optimizer=optim_generator, step_size=10000, gamma=0.0)
+    # scheduler_discriminator = torch.optim.lr_scheduler.StepLR(optimizer=optim_discriminator, step_size=50000, gamma=0.0)
+    # scheduler_generator = torch.optim.lr_scheduler.StepLR(optimizer=optim_generator, step_size=10000, gamma=0.0)
 
+    scheduler_discriminator = torch.optim.lr_scheduler.LambdaLR(optim_discriminator, lambda x: max(1 - (x / 500e3), 0))
+    scheduler_generator = torch.optim.lr_scheduler.LambdaLR(optim_generator, lambda x: max(1 - (x / 100e3), 0))
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
@@ -188,9 +190,13 @@ def train_model(
 
                         # generated_samples = gen.forward_with_given_input(rand)
 
-                        generated_samples = gen.forward(train_batch.shape[0])
+                        generated_samples = gen.forward(train_batch.shape[0]).cuda()
 
                         generated_samples = torch.clamp(generated_samples, 0, 1)
+
+                        # min_value = generated_samples.min()
+                        # max_value = generated_samples.max()
+                        # rescaled_tensor = (generated_samples - min_value) / (max_value - min_value)
 
                         ##################################################################
                         #                          END OF YOUR CODE                      #
