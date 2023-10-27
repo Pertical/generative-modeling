@@ -19,8 +19,16 @@ def compute_discriminator_loss(
     ##################################################################
 
     #Loss 
-    loss = torch.log(torch.sigmoid(discrim_real)) + torch.log(1 - torch.sigmoid(discrim_fake))
-    
+    # loss = torch.log(torch.sigmoid(discrim_real)) + torch.log(1 - torch.sigmoid(discrim_fake))
+
+    sigmoid_real = torch.sigmoid(discrim_real)
+    sigmoid_fake = torch.sigmoid(discrim_fake)
+
+    loss_real = torch.sum(torch.log(sigmoid_real))
+    loss_fake = torch.sum(torch.log(1 - sigmoid_fake))
+
+    loss = loss_real + loss_fake
+        
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
@@ -31,8 +39,12 @@ def compute_generator_loss(discrim_fake):
     ##################################################################
     # TODO 1.3: Implement GAN loss for the generator.
     ##################################################################
+
+    sigmoid_fake = torch.sigmoid(discrim_fake)
     
-    loss = torch.log(1 - torch.sigmoid(discrim_fake))
+    loss = torch.sum(torch.log(1 - sigmoid_fake))
+
+
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
