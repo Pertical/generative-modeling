@@ -41,23 +41,16 @@ def interpolate_latent_space(gen, path):
     # 3. Save out an image holding all 100 samples.
     # Use torchvision.utils.save_image to save out the visualization.
     ##################################################################
-    num_samples = 100  
-    num_steps = 10
-    latent_dim = 128
+    
+    samples = torch.zeros(100, 128).cuda()
+    samples[:, 0] = torch.linspace(-1, 1, 10).repeat(10)
+    samples[:, 1] = torch.linspace(-1, 1, 10).repeat_interleave(10)
+    samples = gen.forward_given_samples(samples)
+    #samples = torch.clamp(samples, 0, 1)
+    save_image(samples, path, nrow=10)
 
-    for i in range(num_samples):
-        z = torch.zeros(1, latent_dim)
 
-        for step in range(num_steps):
-            alpha = step / (num_steps - 1)
 
-            z[:, :2] = 2 * alpha - 1  # Linear interpolation between -1 and 1
-
-            # Forward the samples through the generator
-            generated_images = gen(z)
-
-            # Save out an image for each sample
-            save_image(generated_images[0], path)
 
     ##################################################################
     #                          END OF YOUR CODE                      #
