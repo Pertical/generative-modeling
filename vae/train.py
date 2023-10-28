@@ -18,7 +18,17 @@ def ae_loss(model, x):
     ##################################################################
     # TODO 2.2: Fill in MSE loss between x and its reconstruction.
     ##################################################################
-    loss = None
+
+    encoder_output = model.encoder(x)
+    recon_x = model.decoder(encoder_output)
+
+    residual = (x - recon_x).view(x.shape[0], -1)
+
+    loss = torch.norm(residual, dim = 1)**2
+    loss = loss.mean()
+
+
+
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
@@ -38,9 +48,44 @@ def vae_loss(model, x, beta = 1):
     # closed form, you can find the formula here:
     # (https://stats.stackexchange.com/questions/318748/deriving-the-kl-divergence-loss-for-vaes).
     ##################################################################
-    total_loss = None
-    recon_loss = None
-    kl_loss = None
+    
+    # mu, logvar = model.encoder(x)
+
+    # kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+
+
+
+    # recon_x = model.decoder(x)
+
+    # residual = (x - recon_x).view(x.shape[0], -1)
+
+    # recon_loss = torch.norm(residual, dim = 1)**2
+    # recon_loss = recon_loss.mean()
+
+    # total_loss = recon_loss + beta * kl_loss
+
+    # Q is the encoder, take the learned sigma and covariance
+    Q_mu, Q_log_sigma = model.encoder(x)
+    Q_sigma           = torch.exp(Q_log_sigma)
+
+    # Calculate the KL divergence for the batch
+    kl_loss = 1/2 * (torch.sum(Q_mu**2, dim = 1) + torch.sum(Q_sigma, dim = 1) - torch.sum(Q_log_sigma + 1, dim = 1))
+
+    # Sample eps from a standard normal
+    eps = torch.randn(Q_mu.shape).view(Q_mu.shape[0], -1).cuda()
+
+    # This is the "learned" latent representation of the image, we want to see how well this reconstructs the image
+    z_given_x = eps * Q_sigma ** 0.5 + Q_mu
+    f_z       = model.decoder(z_given_x)
+
+    # Calculate the reconstruction loss
+    recon_residual = (x - f_z).view(x.shape[0], -1)
+    recon_loss = torch.norm(recon_residual, dim = 1)**2
+
+    # Total loss is just the sum
+    kl_loss   *= beta
+    total_loss = (recon_loss + kl_loss).mean()
+
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
