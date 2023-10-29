@@ -60,7 +60,6 @@ def vae_loss(model, x, beta = 1):
     recon_loss = torch.norm(residual, dim = 1)**2
     recon_loss = recon_loss.mean()
 
-
     kl_loss = -0.5 * torch.sum(1 + 2*logvar - mu.pow(2) - torch.exp(2*logvar))
     kl_loss = kl_loss / x.size(0) 
 
