@@ -64,8 +64,14 @@ class VAEEncoder(Encoder):
         # TODO 2.4: Fill in self.fc, such that output dimension is
         # 2*self.latent_dim
         ##################################################################
+        
         self.latent_dim = latent_dim
-        self.fc = nn.Linear(self.fc.in_features, 2 * self.latent_dim)
+
+        spatial_size = 256 * (input_shape[1] // 8) * (input_shape[2] // 8)  
+
+    
+        self.fc = nn.Linear(spatial_size, 2 * self.latent_dim)
+        
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
@@ -77,10 +83,14 @@ class VAEEncoder(Encoder):
         ##################################################################
 
         x = self.convs(x)
+        x = x.view(x.shape[0], -1)
 
-        x = self.fc(x.view(x.shape[0], -1))
+        x = self.fc(x)
+
         mu = x[:, :self.latent_dim]
         log_std = x[:, self.latent_dim:]
+
+    
 
         ##################################################################
         #                          END OF YOUR CODE                      #
@@ -110,9 +120,7 @@ class Decoder(nn.Module):
         # TODO 2.1: Set up the network layers. First, compute
         # self.base_size, then create the self.fc and self.deconvs.
         ##################################################################
-        
-        
-        self.base_size = (256 , (output_shape[1] // 8), (output_shape[2] // 8))
+        self.base_size = 256 * (output_shape[1] // 8) *(output_shape[2] // 8)
 
         self.deconvs = nn.Sequential(
             nn.ReLU(),
@@ -137,11 +145,14 @@ class Decoder(nn.Module):
         # self.fc, then self.deconvs.
         ##################################################################
         z = self.fc(z)
-        z = z.view(z.shape[0], self.base_size)
+        z = z.view(z.shape[0], 256, self.output_shape[1] // 8, self.output_shape[2] // 8)
+
         z = self.deconvs(z)
-        z = z.view(z.shape[0], 3, self.output_shape[1], self.output_shape[2])
+        z = z.view(z.shape[0], self.output_shape[0], self.output_shape[1], self.output_shape[2])
 
         return z
+
+
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
