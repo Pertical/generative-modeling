@@ -15,8 +15,19 @@ def get_fid(gen, dataset_name, dataset_resolution, z_dimension, batch_size, num_
     # Note: The output must be in the range [0, 255]!
     ##################################################################
 
-    shape = (batch_size, gen.channels, dataset_resolution, dataset_resolution)
-    gen_fn = gen.sample_given_z(shape)
+    def gen_fn(x):
+
+        shape = (batch_size, gen.channels, dataset_resolution, dataset_resolution)
+
+        out = gen.sample_given_z(x, shape)
+
+        out = torch.sigmoid(out)*255
+
+        #out = torch.clamp(out, 0, 255)
+
+        return out
+    
+    
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################

@@ -151,24 +151,19 @@ class DiffusionModel(nn.Module):
         ##################################################################
         # Step 1: Predict x_0 and the additive noise for tau_i
         
-        tau_i = torch.tensor(tau_i, device=device)
-        tau_isub1 = torch.tensor(tau_isub1, device=device)
+        tau_i = torch.tensor([tau_i], device=device).type(torch.int64)
+        tau_isub1 = torch.tensor([tau_isub1], device=device).type(torch.int64)
+        pred_noise, x_0 = model_predictions(img, tau_i)
 
-        if torch.all(tau_i > 0):
+        if torch.all(tau_i > 0) and torch.all(tau_isub1 > 0):
             z = torch.randn_like(img)
         else:
             return img, x_0
-
-        pred_noise, x_0 = model_predictions(img, tau_i)
-
-
 
         # Step 2: Extract \alpha_{\tau_{i - 1}} and \alpha_{\tau_{i}}
 
         alpha_tau_isub1 = extract(alphas_cumprod, tau_isub1, img.shape)
         alpha_tau_i = extract(alphas_cumprod, tau_i, img.shape)
-
-
         # Step 3: Compute \sigma_{\tau_{i}}
 
         beta_tau_isub1 = extract(self.betas, tau_isub1, img.shape)
@@ -183,8 +178,6 @@ class DiffusionModel(nn.Module):
 
         mean_tau = torch.sqrt(alpha_tau_isub1) * x_0 + epsilon_coef * pred_noise
     
-
-
         img = mean_tau + z * torch.sqrt(sigma_tau_i)
         ##################################################################
         #                          END OF YOUR CODE                      #
